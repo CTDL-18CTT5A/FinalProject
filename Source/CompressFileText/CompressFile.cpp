@@ -204,9 +204,6 @@ void WriteHeaderFile(FILE* Output , HuffData data , unsigned long long freq[256]
 	//fwrite(&(size), sizeof(int), 1, Output);
 	fwrite(freq, sizeof(unsigned long long) * 256, 1, Output);
 
-
-	
-
 }
 
 
@@ -422,8 +419,6 @@ void EncodeFile(string linkFile)
 
 	HuffMap map;
 
-
-	//EXE K ĐỌC Đc
 	
 	HuffmanCompress(file, fileCompresss, map, data, size, ToCharArray(linkFile) , freq);
 

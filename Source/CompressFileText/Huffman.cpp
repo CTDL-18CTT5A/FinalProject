@@ -195,7 +195,6 @@ HuffData ReadFileExe(FILE* p , char * filename , unsigned long long freq[256])
 		{
 			haf.wei[count] = freq[i];
 			haf.s[count] = i;
-			cout << "KH : " << haf.wei[count] << " va " << haf.s[count] << endl;
 			count++;
 		}
 	}
@@ -301,7 +300,6 @@ HuffmanTree* CreateHeapHuffman(HuffData map, int size)
 
 	for (int i = 0; i < size; i++)
 	{
-		//cout << "S[i] = " << map.s[i] << "/" << map.wei[i] << endl;
 		hufftree->Array[i] = newNode(map.s[i], map.wei[i]);
 	}
 

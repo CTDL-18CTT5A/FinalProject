@@ -1,0 +1,7 @@
+Như em đã nói trong báo cáo , nếu muốn debug thành công chương trình thì cần cài bộ thư viện nana c++
+
+Và một số máy nếu thiếu visual studio cũng có khả năng không thể chạy đc vì thiếu một số dll
+
+Nếu muốn có thể cài thêm vào và chạy
+
+Cách cài nana thì đã nói rõ trong báo cáo.

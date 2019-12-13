@@ -41,7 +41,7 @@ void Decode(FILE* in, FILE* out);
 void EncodeFile(string linkFile);
 
 
-void EncodeMultiFile(char* filename);
+//void EncodeMultiFile(char* filename);
 
 //void ExportFile();
 

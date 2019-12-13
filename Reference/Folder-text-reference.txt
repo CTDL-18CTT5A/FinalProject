@@ -1,0 +1,12 @@
+Link web:
+http://read.pudn.com/downloads167/ebook/769449/dataCompress.pdf
+https://en.wikipedia.org/wiki/Huffman_coding
+https://www.wikihow.com/Compress-Data-Using-Huffman-Encoding
+https://freecontent.manning.com/data-compression-with-huffmans-algorithm/
+http://web.stanford.edu/class/archive/cs/cs106x/cs106x.1192/resources/minibrowser2/huffman-encoding-supplement.pdf
+
+Link youtube:
+https://www.youtube.com/watch?v=dM6us854Jk0
+https://www.youtube.com/watch?v=co4_ahEDCho&t=896s
+https://www.youtube.com/watch?v=FSzmnqnNzqQ
+https://www.youtube.com/watch?v=iiGZ947Tcck

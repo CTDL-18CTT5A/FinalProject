@@ -131,13 +131,16 @@
   <ItemGroup>
     <ClInclude Include="CompressFile.h" />
     <ClInclude Include="CompressFolder.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Huffman.h" />
+    <ClInclude Include="jpeg_encoder.h" />
     <ClInclude Include="SupportOpenFolder.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CompressFile.cpp" />
     <ClCompile Include="CompressFolder.cpp" />
     <ClCompile Include="Huffman.cpp" />
+    <ClCompile Include="jpeg_encoder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SupportOpenFolder.cpp" />
   </ItemGroup>

@@ -175,10 +175,9 @@ void DecodeFolder(FILE* in, FILE* out, int vtLE)
 
 	fseek(in, curPos, SEEK_SET);
 
-
+	int sl = 0;
 	HuffData data;
-	int size = 0;
-	ReadHeaderFile(in, data,size);
+	ReadHeaderFile(in, data, sl);
 
 
 
@@ -194,77 +193,53 @@ void DecodeFolder(FILE* in, FILE* out, int vtLE)
 	fseek(in, StartIndex, SEEK_SET);
 
 
+	//TU DAY
 
-	//__________Chuyển kí tự về bit và lưu hết vào trong mảng bit____________
-	ConvertToBinArrayOfFolder(in, StartIndex, bit, n, vtLe, vtLE);
-	//Tiếp tục lưu các bia thừa.
-	//_________Tạo ra map dữ liệu____________
+	NODE* pos = builfHuffmanTree(data, sl);
+	NODE* ROOT = pos;
 
-	NODE* root = builfHuffmanTree(data, size);
-	HuffMap map;
-	map.BitArray = new int* [size]; //SS
-	map.charater = new char[size]; //SS
-	int arr[500];
-	long long top = 0;
-
-	int index = 0;
-	CompressFile(map, root, arr, top, index);
-
-	//Nếu cây huffman không tồn tại(Tức chỉ có 1 phần tử trong file)
-	if (size == 1)
+	int len = sizeOfBit / 8 - SoLuongBitLe;
+	unsigned char* Memory;
+	Memory = new unsigned char[len];
+	fread(Memory, sizeof(char), len, in);
+	cout << "len = " << len << endl;
+	for (int i = 0; i < len; i++)
 	{
-		int temp = 0;
-		while (temp < data.wei[0])
+		for (int j = 0; j < 8; j++)
 		{
-			fprintf(out, "%c", data.s[0]);
-			temp++;
-		}
-		return;
-	}
-	cout << "____________________________" << endl;
-
-	//________Chuyển từ dãy bit sang string để dễ so sánh_________
-
-	string* BitArray = new string[size];
-	for (int i = 0; i < size; i++)
-	{
-		int j = 0;
-		while (map.BitArray[i][j] != 2)
-		{
-			char test = char(map.BitArray[i][j] + 48);
-			BitArray[i] += test;
-			j++;
-		}
-	}
+			//Chuyen ve bit 0 hoac 1
+			if ((Memory[i] >> (7 - j)) & 1)
+				pos = pos->pRight;
+			else
+				pos = pos->pLeft;
 
 
-	//Bắt đầu so sánh và ghi ra file
-	string compare;
-	int byte = 0;
-	for (int i = 0; i < n; i++)
-	{
-		compare += char(bit[i] + 48);
-		for (int k = 0; k < size; k++)
-		{
-			if (compare == BitArray[k])
+			if (isLeaf(pos))
 			{
-				char op[2];
-				op[1] = '\0';
-				op[0] = map.charater[k];
-				fwrite(op, sizeof(char), 1, out);
-				byte++;
-				compare.clear();
-				break;
+				fwrite(&pos->_text, sizeof(char), 1, out);
+				pos = ROOT;
 			}
 		}
 	}
+	fseek(in, vtLe, SEEK_SET);
 
-	delete[] bit;
-	delete[] BitArray;
-	delete[] map.BitArray;
-	delete[] map.charater;
+	char* c = new char[SoLuongBitLe];
+	fread(c, sizeof(char), SoLuongBitLe, in);
+	c[SoLuongBitLe] = '\0';
+	for (int i = 0; i < SoLuongBitLe; i++)
+	{
+		if (c[i] == '1')
+			pos = pos->pRight;
+		else if (c[i] == '0')
+			pos = pos->pLeft;
 
-	cout << "End tell : " << ftell(in) << endl;
+		if (isLeaf(pos))
+		{
+			fwrite(&pos->_text, sizeof(char), 1, out);
+			pos = ROOT;
+		}
+
+	}
 
 
 
@@ -431,8 +406,8 @@ void ExportFolder(string namefolder)
 
 		//Bo qua 3 byte ngan cach:
 
-		char temp[4];
-		fread(temp, sizeof(char), 3, header);
+		char temp[5];
+		fread(temp, sizeof(char), 4, header);
 
 	}
 
