@@ -16,4 +16,6 @@ vector<string> get_all_files_names_within_folder(string folder);
 
 vector<string> GetAllNameFILE(char*& FolderName , string filename);
 
+void ReadeFolderList(vector<string>& listFolder, string folderPath);
 
+void ReadeFileList(vector<string>& fileList, string folderPath);

@@ -108,13 +108,19 @@ void EncodeFolder(string filename)
 {
 	char* FolderName;
 	cout << filename << endl;
-	vector<string> allName = GetAllNameFILE(FolderName , filename);
+	//vector<string> allName = GetAllNameFILE(FolderName , filename);
+	vector<string> allName;
+	vector<string> listFolder;
 
+	ReadeFileList(allName, filename);
+	ReadeFolderList(listFolder, filename);
+	
 	if (allName.empty())
 	{
 		cout << "Folder is empty , can't compressed " << endl;
 		return;
 	}
+
 	FolderName = ToCharArray(subFolderName(filename));
 
 	string FName = ConvertToString(FolderName) + ".OZIP";
@@ -131,25 +137,47 @@ void EncodeFolder(string filename)
 
 	fclose(fileCompresss);
 
-
-	for (int i = 0; i < allName.size(); i++)
+	int l = listFolder.size();
+	for (int k = -1; k < l; k++)
 	{
-		//Write name filete
-		FILE* writeNametoFile = fopen(FName.c_str(), "ab+");
-		//Lưu lại tên file để nén ra thì trả lại
-		char* filename = ToCharArray(subFileName(allName[i]));
-		cout << subFolderName(allName[i]) << endl;
-		fwrite(filename, sizeof(char), strlen(filename), writeNametoFile);
-		fwrite("†", 1, 1, writeNametoFile);
-		fclose(writeNametoFile);
+		if (k != -1)
+		{
+			allName.clear();
+			ReadeFileList(allName, listFolder[k]);
 
-		//Sau khi ghi lại đầy đủ header thì bắt đầu mã hoá code
-		char* s = ToCharArray(allName[i]);
-		EncodeMultiFile(s , FName.c_str());
+			FILE* fileCompresss = fopen(FName.c_str(), "ab+");
+			//ghi raTên folder nén
+			fprintf(fileCompresss, "%s†", ToCharArray(subFileName(filename) + "\\" + subFileName(listFolder[k])));
+			//Ghi ra so luong file tồn tại trong folder nén
+			fprintf(fileCompresss, "%d", allName.size());
 
-		FILE* fileCompresss = fopen(FName.c_str(), "ab+");
-		fwrite("|||", 3, 1, fileCompresss);
-		fclose(fileCompresss);
+			fprintf(fileCompresss, "†");
+
+			fclose(fileCompresss);
+
+		}
+		for (int i = 0; i < allName.size(); i++)
+		{
+			//Write name filete
+			FILE* writeNametoFile = fopen(FName.c_str(), "ab+");
+			//Lưu lại tên file để nén ra thì trả lại
+			char* filename = ToCharArray(subFileName(allName[i]));
+			cout << subFolderName(allName[i]) << endl;
+			fwrite(filename, sizeof(char), strlen(filename), writeNametoFile);
+			fwrite("†", 1, 1, writeNametoFile);
+			fclose(writeNametoFile);
+
+			//Sau khi ghi lại đầy đủ header thì bắt đầu mã hoá code
+			char* s = ToCharArray(allName[i]);
+			EncodeMultiFile(s, FName.c_str());
+
+			FILE* fileCompresss = fopen(FName.c_str(), "ab+");
+			fwrite("|||", 3, 1, fileCompresss);
+			fclose(fileCompresss);
+		}
+		FILE* fin = fopen(FName.c_str(), "ab+");
+		fwrite("///", 3, 1, fin);
+		fclose(fin);
 	}
 	_fcloseall();
 
@@ -301,115 +329,145 @@ vector<int> posStop(char* filename)
 }
 
 
+vector<int> posNewFile(char* filename)
+{
+	char buff[4];
+	vector<int> pos;
+	FILE* fs = fopen(filename, "rb");
+	if (fs != NULL) {
+		if (3 == fread(buff, 1, 3, fs))
+		{
+			do
+			{
+				if (_strnicmp(buff, "///", 3) == 0)
+					pos.push_back(ftell(fs) - 2);
+				memmove(buff, buff + 1, 3);
+			} while (1 == fread(buff + 2, 1, 1, fs));
+		}
+	}
+	fclose(fs);
+
+	return pos;
+}
+
 //Export file ta chỉ cần đọc file cho tới khi gặp điểm quy ước thì dừng và xuất file đó ra , cứ như thế cho đến khi gặp điểm quy ước cuối cùng
 void ExportFolder(string namefolder)
 {
+	vector<int> posSTOPFILE = posNewFile(ToCharArray(namefolder));
+	vector<int> posEnd = posStop(ToCharArray(namefolder));
+	FILE* header = fopen(ToCharArray(namefolder), "rb");
+	fseek(header, 1, SEEK_SET);
 
-#pragma region Kiểm tra nếu folder rỗng gì không thể nén.
+	int posCTN = 0;
 
-#pragma endregion
-
-
+	for (int h = 0; h < posSTOPFILE.size(); h++)
+	{
 
 #pragma region Lấy ra tên file và tìm những vị trí mà file kết thúc để dừng đọc đúng lúc.
 
-	
-	vector<int> posEnd = posStop(ToCharArray(namefolder));
+
 
 #pragma endregion
+		//Neu chi co duy nhat mot file tuc la size = 0;
+		if (posEnd.empty())
+		{
+			ExportFile(namefolder);
+			return;
+		}
 
-	//Neu chi co duy nhat mot file tuc la size = 0;
-	if (posEnd.empty())
-	{
-		ExportFile(namefolder);
-		return;
-	}
-
-	FILE* header = fopen(ToCharArray(namefolder), "rb");
-
- 	//Bỏ qua byte nhận dạng file là byte đầu tiên
-	fseek(header, 1, SEEK_SET);
 
 #pragma region lấy ra tên folder cũ để tạo và ghi vào
-	string folderName;
-	char tempChar;
-	fread(&tempChar, 1, 1, header);
-	while (tempChar != '†')
-	{
-		folderName += tempChar;
+		string folderName;
+		char tempChar;
 		fread(&tempChar, 1, 1, header);
-	}
-	_mkdir(ToCharArray(folderName));
+		while (tempChar != '†')
+		{
+			folderName += tempChar;
+			fread(&tempChar, 1, 1, header);
+		}
+		_mkdir(ToCharArray(folderName));
 #pragma endregion
-
+		
 
 
 #pragma region Lấy ra số lượng file đã nén trong folder cũ
-	long long numberOfFile = 0;
-	char ch;
-	fread(&ch, 1, 1, header);
-	while (ch != '†')
-	{
-		numberOfFile = numberOfFile * 10 + int(ch - 48);
-		fread(&ch, 1, 1, header);
-	}
-#pragma endregion
-
-
-
-
-
-	int curpos = ftell(header);
-
-
-	fseek(header, curpos, SEEK_SET);
-
-	//Lưu lại vị trí cũ để thư mục cuối cùng có thể mang ra dùng vì posEnd bị giới hạn
-
-	for (int i = 0; i < posEnd.size(); i++)
-	{
-
-		//Lấy từng tên file trong folder cũ từ header
-		string nameOut;
-
-		//Doc lay ten
+		long long numberOfFile = 0;
 		char ch;
 		fread(&ch, 1, 1, header);
 		while (ch != '†')
 		{
-			nameOut += ch;
+			numberOfFile = numberOfFile * 10 + int(ch - 48);
 			fread(&ch, 1, 1, header);
 		}
+#pragma endregion
 
-		//Get type
-		char NumberOfType;
-		fread(&NumberOfType, sizeof(char), 1, header);
-		int sz = int(NumberOfType - 48);
-		char* type = new char[sz];
-		fread(type, sizeof(char), sz, header);
 
-		nameOut += ".";
-		//Cong them duoi vao
-		for (int i = 0; i < sz; i++)
+
+
+
+		int curpos = ftell(header);
+
+
+		fseek(header, curpos, SEEK_SET);
+
+		//Lưu lại vị trí cũ để thư mục cuối cùng có thể mang ra dùng vì posEnd bị giới hạn
+
+		for (int i = posCTN; i < posEnd.size(); i++)
 		{
-			nameOut += type[i];
+			if (posEnd[i] > posSTOPFILE[h])
+			{
+				posCTN = i;
+				break;
+			}
+			cout << "Pos END  = " << posEnd[i] << endl;
+			cout << "POS STOP : " << posSTOPFILE[h] << endl;
+			//Lấy từng tên file trong folder cũ từ header
+			string nameOut;
+
+			//Doc lay ten
+			char ch;
+			fread(&ch, 1, 1, header);
+			while (ch != '†')
+			{
+				nameOut += ch;
+				fread(&ch, 1, 1, header);
+			}
+
+			//Get type
+			char NumberOfType;
+			fread(&NumberOfType, sizeof(char), 1, header);
+			int sz = int(NumberOfType - 48);
+			char* type = new char[sz];
+			fread(type, sizeof(char), sz, header);
+
+			nameOut += ".";
+			//Cong them duoi vao
+			for (int i = 0; i < sz; i++)
+			{
+				nameOut += type[i];
+			}
+			cout << folderName+"\\"+nameOut << endl;
+
+			FILE* out = fopen(ToCharArray(folderName+"\\"+nameOut), "wb");
+
+
+			DecodeFolder(header, out, posEnd[i]);
+
+			fclose(out);
+
+
+			//Bo qua 3 byte ngan cach:
+
+			char temp[5];
+			fread(temp, sizeof(char), 4, header);
+
 		}
-		cout << nameOut << endl;
 
-		FILE* out = fopen(ToCharArray(nameOut), "wb");
-
-
-		DecodeFolder(header, out, posEnd[i]);
-
-		fclose(out);
-
-
-		//Bo qua 3 byte ngan cach:
-
-		char temp[5];
-		fread(temp, sizeof(char), 4, header);
-
+		char temp[4];
+		fread(temp, sizeof(char), 3, header);
 	}
+
+
 
 
 

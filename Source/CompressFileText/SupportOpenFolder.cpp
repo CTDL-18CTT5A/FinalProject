@@ -1,4 +1,5 @@
 ﻿#include"SupportOpenFolder.h"
+#include "dirent.h"
 
 vector<string> get_all_files_names_within_folder(string folder)
 {
@@ -50,4 +51,52 @@ vector<string> GetAllNameFILE(char*& FolderName , string namefile)
 	}
 
 	return allName;
+}
+
+
+void ReadeFileList(vector<string>& fileList, string folderPath)
+{
+	DIR* dir;
+	struct dirent* ent;
+	if ((dir = opendir(folderPath.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			fstream f(folderPath + "\\" + ent->d_name, ios::in);
+
+			if (f.is_open())
+			{
+				fileList.push_back(folderPath + "\\" + ent->d_name);
+				f.close();
+
+			}
+
+
+		}
+		closedir(dir);
+	}
+}
+void ReadeFolderList(vector<string>&listFolder , string folderPath)
+{
+	DIR* dir;
+	struct dirent* ent;
+	if ((dir = opendir(folderPath.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			fstream f(folderPath + "\\" + ent->d_name, ios::in);
+
+			if (!f.is_open())
+			{
+				string temp(ent->d_name);
+				if (temp.compare(".") != 0 && temp.compare("..") != 0)
+				{
+					listFolder.push_back(folderPath + "\\" + ent->d_name);
+				}
+			}
+
+
+		}
+		closedir(dir);
+	}
 }

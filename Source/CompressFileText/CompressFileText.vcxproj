@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="CompressFile.h" />
     <ClInclude Include="CompressFolder.h" />
+    <ClInclude Include="dirent.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Huffman.h" />
     <ClInclude Include="jpeg_encoder.h" />
