@@ -8,7 +8,7 @@
 #include<sstream>
 #include<bitset>
 using namespace std;
-
+#define MAX_BYTE 1024*1024
 
 
 bool isLeaf(NODE* root)
@@ -128,44 +128,100 @@ void HuffmanCompress(FILE *fileInput , FILE *fileOut , HuffMap &map , HuffData  
 	bool bit8[8];
 	unsigned char* Memory;
 	fseek(fileInput, 0, SEEK_END);
+	//unsigned long long len = ftell(fileInput);
 	unsigned long long len = ftell(fileInput);
 	fseek(fileInput, 0, SEEK_SET);
-	Memory = new unsigned char[len];
-	
-	fread(Memory, sizeof(char), len, fileInput);
-	
+	Memory = new unsigned char[MAX_BYTE];
+	unsigned char* Buffer = new unsigned char[MAX_BYTE];
+	unsigned long long sl = 0;
+
 	fseek(fileInput, 0, SEEK_SET);
-
-	for (int k = 0; k < len; k++)
+	if (len > 0)
 	{
-		int j = 0;
-		const char* ptr = strchr(map.charater, Memory[k]);
-		if (ptr)
+		while (len >= MAX_BYTE)
 		{
-			int index = ptr - map.charater;
-			while (map.BitArray[index][j] != 2)
+			fread(Memory, MAX_BYTE, 1, fileInput);
+
+			for (unsigned int k = 0; k < MAX_BYTE; ++k)
 			{
-				countSumBit++;
-				bit8[countBit++] = map.BitArray[index][j];
-				if (countBit == 8)
+				int j = 0;
+				const char* ptr = strchr(map.charater, Memory[k]);
+				if (ptr)
 				{
+					int index = ptr - map.charater;
+					while (map.BitArray[index][j] != 2)
+					{
+						countSumBit++;
+						bit8[countBit++] = map.BitArray[index][j];
+						if (countBit == 8)
+						{
 
-					unsigned char c = 0;
+							unsigned char c = 0;
 
-					for (int z = 0; z < 8; ++z)
-						if (bit8[z])
-							c |= (128 >> z);
+							for (int z = 0; z < 8; ++z)
+								if (bit8[z])
+									c |= (128 >> z);
+							Buffer[sl++] = c;
+							if (sl == MAX_BYTE)
+							{
+								fwrite(Buffer, sl, 1, fileOut);
+								sl = 0;
+							}
 
-					fwrite(&c, sizeof(unsigned char), 1, fileOut);
-					countBit = 0;
-					countBit8 += 8;
+							countBit = 0;
+							countBit8 += 8;
+						}
+
+						j++;
+					}
 				}
+			}
+			len -= MAX_BYTE;
+		}
+	}
 
-				j++;
+	if (len > 0 && len < MAX_BYTE)
+	{
+		fread(Memory, len, 1, fileInput);
+
+		for (unsigned int k = 0; k < len; ++k)
+		{
+			int j = 0;
+			const char* ptr = strchr(map.charater, Memory[k]);
+			if (ptr)
+			{
+				int index = ptr - map.charater;
+				while (map.BitArray[index][j] != 2)
+				{
+					countSumBit++;
+					bit8[countBit++] = map.BitArray[index][j];
+					if (countBit == 8)
+					{
+
+						unsigned char c = 0;
+
+						for (int z = 0; z < 8; ++z)
+							if (bit8[z])
+								c |= (128 >> z);
+
+						Buffer[sl++] = c;
+						if (sl == MAX_BYTE)
+						{
+							fwrite(Buffer, sl, 1, fileOut);
+							sl = 0;
+						}
+						countBit = 0;
+						countBit8 += 8;
+					}
+
+					j++;
+				}
 			}
 		}
-			
+		if (sl > 0)
+			fwrite(Buffer, sl, 1, fileOut);
 	}
+
 	
 	int soBitLe = 0;
 	for (int z = 0; z < countBit; z++)

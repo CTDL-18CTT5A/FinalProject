@@ -356,10 +356,10 @@ void ExportFolder(string namefolder)
 	vector<int> posSTOPFILE = posNewFile(ToCharArray(namefolder));
 	vector<int> posEnd = posStop(ToCharArray(namefolder));
 	FILE* header = fopen(ToCharArray(namefolder), "rb");
+	rewind(header);
 	fseek(header, 1, SEEK_SET);
 
 	int posCTN = 0;
-
 	for (int h = 0; h < posSTOPFILE.size(); h++)
 	{
 
